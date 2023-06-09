@@ -8,6 +8,7 @@ ADMIN_ROLE = "Admin"
 class BaseCog(commands.Cog):  
     def __init__(self, bot) -> None:
         self.bot = bot
+        # Start uptime timer
         self.startTime = time.time()
 
 
@@ -33,10 +34,12 @@ class BaseCog(commands.Cog):
     @commands.command()
     async def help(self, ctx, arg=None):
         match arg:
+            # !help commands
             case 'commands':
                 # Might want to add a parser to pretty this up
                 hcoms = {'help':'Information on the use of this bot'}
                 await ctx.send(f'list of commands: {repr(hcoms)}')
+            # !help debug
             case 'debug':
                 if not commands.has_role('admin'):
                     pass
@@ -44,6 +47,7 @@ class BaseCog(commands.Cog):
                          'time': 'get current time in bots timezone',
                          'uptime': 'get current bot uptime'}
                 await ctx.send(f'!debug "command": {repr(dcoms)}')
+            # !help
             case _:
                 await ctx.send('For a list of commands type "!help commands"')
 
