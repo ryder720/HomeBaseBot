@@ -10,5 +10,6 @@ class MainCog(commands.Cog):
     async def test(self, ctx):  
         await ctx.send("Test successful.")
 
+
 async def setup(client):
     await client.add_cog(MainCog(client))
