@@ -6,4 +6,7 @@ run pip install -r requirements.txt
 
 run start_bot.py
 
-for administrator commands create role named admin
+for administrator commands create role named Admin
+
+!help gives commands for base cog
+!(cog)help will give commands for addons
