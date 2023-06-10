@@ -35,7 +35,21 @@ class FlipCog(commands.Cog):
                 with open(f'{DATA_DIR}flip.json', 'w') as file:
                     json.dump(data, file)
 
+    def viewplayeronboard(self, ctx):
+            if not os.path.isfile(f'{DATA_DIR}flip.json'):
+                with open(f'{DATA_DIR}flip.json', 'w+') as file:
+                    key = str(ctx.author.id)
+                    newdata = {key: {'score': 0, 'level': 0}}
+                    json.dump(newdata, file)
+                    return newdata[key]
             
+            with open(f'{DATA_DIR}flip.json', 'r') as file:
+                    data = json.load(file)
+                    key = str(ctx.author.id)
+                    if key in data.keys():
+                        # Pretty up later
+                        return data[key]
+                    return None
 
     # !flip
     @commands.command()
@@ -43,18 +57,30 @@ class FlipCog(commands.Cog):
         match arg:
             # !flip leaderboard
             case 'leaderboard':
-                pass
+                player = self.viewplayeronboard(ctx)
+                if player:
+                    # Pretty up later
+                    await ctx.send(f"{ctx.author} is currently level {player['level']} with a score of {player['score']}")
+                else:
+                    await ctx.send(f'Sorry {ctx.author} I couldn\'t find your id on the leaderboard')
+                    print(f'Failed to find {ctx.author.id} in {DATA_DIR}flip.json')
 
             # !flip
             case _:
                 # Flip coin
                 coin = random.randint(0,1)
+                message = ''
+                player = self.viewplayeronboard(ctx)
                 if coin:
-                    await ctx.send(f'{ctx.author}\'s flip landed HEADS!')
+                    message += f"LVL[{player['level']}] {ctx.author}\'s flip landed HEADS!"
                 else:
-                    await ctx.send(f'{ctx.author}\'s flip landed TAILS!')
+                    message += f"LVL[{player['level']}] {ctx.author}\'s flip landed TAILS!"
 
                 self.updateleaderboard(ctx.author.id, coin)
+                player = self.viewplayeronboard(ctx)
+                message += f"\nYour new score is {player['score']}"
+                await ctx.send(message)
+
     @commands.command()
     async def fliphelp(self, ctx):
         ctx.send('Commands: '
