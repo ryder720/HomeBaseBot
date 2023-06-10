@@ -36,17 +36,16 @@ class BaseCog(commands.Cog):
         match arg:
             # !help commands
             case 'commands':
-                # Might want to add a parser to pretty this up
-                hcoms = {'help':'Information on the use of this bot'}
-                await ctx.send(f'list of commands: {repr(hcoms)}')
+                await ctx.send(f'Commands:'
+                               '!help | Information on the use of this bot')
             # !help debug
             case 'debug':
                 if not commands.has_role('admin'):
                     pass
-                dcoms = {'': 'sends message to channel as test',
-                         'time': 'get current time in bots timezone',
-                         'uptime': 'get current bot uptime'}
-                await ctx.send(f'!debug "command": {repr(dcoms)}')
+                await ctx.send(f'Debug Commands: '
+                               '!debug | Send message back to chat as test \n'
+                               '!debug time | Get current time in bots timezone \n'
+                               '!debug uptime | Get current bot uptime')
             # !help
             case _:
                 await ctx.send('For a list of commands type "!help commands"')

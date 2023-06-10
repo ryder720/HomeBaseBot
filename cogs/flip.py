@@ -55,7 +55,11 @@ class FlipCog(commands.Cog):
                     await ctx.send(f'{ctx.author}\'s flip landed TAILS!')
 
                 self.updateleaderboard(ctx.author.id, coin)
-
+    @commands.command()
+    async def fliphelp(self, ctx):
+        ctx.send('Commands: '
+                 '!flip | Flip a coin \n'
+                 '!flip leaderboard | See how you rank on the leaderboard')
     
 
 # Manditory setup override function
