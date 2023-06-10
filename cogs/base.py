@@ -36,13 +36,13 @@ class BaseCog(commands.Cog):
         match arg:
             # !help commands
             case 'commands':
-                await ctx.send(f'Commands:'
+                await ctx.send(f'Commands:\n'
                                '!help | Information on the use of this bot')
             # !help debug
             case 'debug':
                 if not commands.has_role('admin'):
                     pass
-                await ctx.send(f'Debug Commands: '
+                await ctx.send(f'Debug Commands: \n'
                                '!debug | Send message back to chat as test \n'
                                '!debug time | Get current time in bots timezone \n'
                                '!debug uptime | Get current bot uptime')

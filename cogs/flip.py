@@ -82,12 +82,17 @@ class FlipCog(commands.Cog):
                     player = self.viewplayeronboard(ctx)
                     message += f"\nYour new score is {player['score']}"
                     await ctx.send(message)
+        else:
+            await ctx.message.delete()
+            await ctx.author.send(f'Hey {ctx.author} I know how fun flipping is but please keep it contained in the relegated flip channel')
+
 
     @commands.command()
     async def fliphelp(self, ctx):
-        ctx.send('Commands: '
+        await ctx.send('Commands: \n'
                  '!flip | Flip a coin \n'
-                 '!flip leaderboard | See how you rank on the leaderboard')
+                 '!flip leaderboard | See how you rank on the leaderboard\n'
+                 'ONLY USABLE IN FLIP CHAT')
     
 
 # Manditory setup override function
