@@ -1,5 +1,5 @@
 from discord.ext import commands
-import random, os, json, math
+import random, os, json, math, discord
 
 
 # Flip cog is an addon remake of a bot I made a while back
@@ -11,14 +11,15 @@ import random, os, json, math
 # Constants
 DATA_DIR = './data/flip/'
 
+flipchannels = []
+
 class FlipCog(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
-        # Create json file if it doesn't exist
-        
 
     def updateleaderboard(self, usr, coin):
             score = coin + 1
+            # Check if file exists
             if not os.path.isfile(f'{DATA_DIR}flip.json'):
                 with open(f'{DATA_DIR}flip.json', 'w+') as file: 
                     newdata = {str(usr): {'score': score, 'level': 0}}
@@ -54,32 +55,33 @@ class FlipCog(commands.Cog):
     # !flip
     @commands.command()
     async def flip(self, ctx, arg=None):
-        match arg:
-            # !flip leaderboard
-            case 'leaderboard':
-                player = self.viewplayeronboard(ctx)
-                if player:
-                    # Pretty up later
-                    await ctx.send(f"{ctx.author} is currently level {player['level']} with a score of {player['score']}")
-                else:
-                    await ctx.send(f'Sorry {ctx.author} I couldn\'t find your id on the leaderboard')
-                    print(f'Failed to find {ctx.author.id} in {DATA_DIR}flip.json')
+        if ctx.channel.id in flipchannels:
+            match arg:
+                # !flip leaderboard
+                case 'leaderboard':
+                    player = self.viewplayeronboard(ctx)
+                    if player:
+                        # Pretty up later
+                        await ctx.send(f"{ctx.author} is currently level {player['level']} with a score of {player['score']}")
+                    else:
+                        await ctx.send(f'Sorry {ctx.author} I couldn\'t find your id on the leaderboard')
+                        print(f'Failed to find {ctx.author.id} in {DATA_DIR}flip.json')
 
-            # !flip
-            case _:
-                # Flip coin
-                coin = random.randint(0,1)
-                message = ''
-                player = self.viewplayeronboard(ctx)
-                if coin:
-                    message += f"LVL[{player['level']}] {ctx.author}\'s flip landed HEADS!"
-                else:
-                    message += f"LVL[{player['level']}] {ctx.author}\'s flip landed TAILS!"
-
-                self.updateleaderboard(ctx.author.id, coin)
-                player = self.viewplayeronboard(ctx)
-                message += f"\nYour new score is {player['score']}"
-                await ctx.send(message)
+                # !flip
+                case _:
+                    # Flip coin
+                    coin = random.randint(0,1)
+                    message = ''
+                    player = self.viewplayeronboard(ctx)
+                    if coin:
+                        message += f"LVL[{player['level']}] {ctx.author}\'s flip landed HEADS!"
+                    else:
+                        message += f"LVL[{player['level']}] {ctx.author}\'s flip landed TAILS!"
+                    # Update score
+                    self.updateleaderboard(ctx.author.id, coin)
+                    player = self.viewplayeronboard(ctx)
+                    message += f"\nYour new score is {player['score']}"
+                    await ctx.send(message)
 
     @commands.command()
     async def fliphelp(self, ctx):
@@ -91,3 +93,26 @@ class FlipCog(commands.Cog):
 # Manditory setup override function
 async def setup(client):
     await client.add_cog(FlipCog(client))
+
+    for server in client.guilds:
+        names = []
+        categories = []
+        for channel in server.channels:
+            names.append(channel.name)
+        for category in server.categories:
+            categories.append(category.name)
+        
+        if 'GAMES' not in categories:
+            gamescategory = await server.create_category('GAMES')
+        else:
+            gamescategory = discord.utils.get(server.categories, name='GAMES')
+
+        if 'flip' not in names:
+            await server.create_text_channel('flip', category = gamescategory)
+            channel = discord.utils.get(server.channels, name='flip')
+            flipchannels.append(channel.id) 
+        else:
+            channel = discord.utils.get(server.channels, name='flip')
+            flipchannels.append(channel.id) 
+
+              
