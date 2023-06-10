@@ -1,5 +1,5 @@
 from discord.ext import commands
-import random, os, json
+import random, os, json, math
 
 
 # Flip cog is an addon remake of a bot I made a while back
@@ -21,13 +21,16 @@ class FlipCog(commands.Cog):
             score = coin + 1
             if not os.path.isfile(f'{DATA_DIR}flip.json'):
                 with open(f'{DATA_DIR}flip.json', 'w+') as file: 
-                    newdata = {str(usr): {'score': score}}
+                    newdata = {str(usr): {'score': score, 'level': 0}}
                     json.dump(newdata, file)
             else:
                 with open(f'{DATA_DIR}flip.json', 'r') as file:
                     data = json.load(file)
-                    
                     data[str(usr)]['score'] += score
+
+                    # Update player level
+                    total = data[str(usr)]['score']
+                    data[str(usr)]['level'] = int((1 + math.sqrt(1 + 8 * total / 5)) / 2)
 
                 with open(f'{DATA_DIR}flip.json', 'w') as file:
                     json.dump(data, file)
@@ -36,15 +39,22 @@ class FlipCog(commands.Cog):
 
     # !flip
     @commands.command()
-    async def flip(self, ctx):
-        # Flip coin
-        coin = random.randint(0,1)
-        if coin:
-            await ctx.send(f'{ctx.author}\'s flip landed HEADS!')
-        else:
-            await ctx.send(f'{ctx.author}\'s flip landed TAILS!')
+    async def flip(self, ctx, arg=None):
+        match arg:
+            # !flip leaderboard
+            case 'leaderboard':
+                pass
 
-        self.updateleaderboard(ctx.author.id, coin)
+            # !flip
+            case _:
+                # Flip coin
+                coin = random.randint(0,1)
+                if coin:
+                    await ctx.send(f'{ctx.author}\'s flip landed HEADS!')
+                else:
+                    await ctx.send(f'{ctx.author}\'s flip landed TAILS!')
+
+                self.updateleaderboard(ctx.author.id, coin)
 
     
 
