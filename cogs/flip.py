@@ -99,6 +99,7 @@ class FlipCog(commands.Cog):
 async def setup(client):
     await client.add_cog(FlipCog(client))
 
+    # Create server channels
     for server in client.guilds:
         names = []
         categories = []
