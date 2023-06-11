@@ -2,6 +2,8 @@ from discord.ext import commands
 import discord
 from cogs.base import DISCORD_ROLES
 from enum import Enum
+from datetime import datetime,timedelta
+from threading import Timer
 
 # Tank Tactics is a friendship ruining game made by Halfbrick Studios
 # You can watch an amazing talk on it here: https://www.youtube.com/watch?v=t9WMNuyjm4w&pp=ygUNZ2RjIGhhbGZicmljaw%3D%3D
@@ -26,15 +28,23 @@ class TTRCog(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
         self.gamestate = GameState.Stopped
+        self.nextroundtime = 0
+        self.round = 0
+        self.gameover = True
+        
     
     @commands.command()
     async def ttr(self, ctx, arg=None):
         match arg:
+            case 'round':
+                if self.gamestate == GameState.Play:
+                    await ctx.send(f'Round:{self.round} will end in {self.calculatenextround()}')
             # !ttr play | Start game if available
             case 'play':
                 # Start game
                 if self.gamestate == GameState.Stopped:
                     await ctx.send('DEBUG: START GAME NOT IMPLEMENTED YET CHANGING GAME STATE')
+                    self.startgame()
                     self.gamestate = GameState.Setup
 
                 else:
@@ -50,6 +60,39 @@ class TTRCog(commands.Cog):
                         await ctx.send('The game is currently underway! Go to the game page to watch the action!')
                     case _:
                         print('ERROR: TTR GAMESTATE NOT FOUND')
+    
+    def startgame(self):
+        self.gameover = False
+        self.round = 1
+        secs = self.updatenextround()
+        roundthread = Timer(secs, self.nextround())
+        # So I can kill it with the main thread
+        roundthread.daemon = True
+        roundthread.start()
+    
+    def updatenextround(self):
+        currentday=datetime.today()
+        nextday = currentday.replace(day=currentday.day, hour=1, minute=0, second=0, microsecond=0) + timedelta(days=1)
+        delta_t=nextday-currentday
+
+        return delta_t.total_seconds()
+    
+    def calculatenextround(self):
+        currentday=datetime.today()
+        delta_t=self.nextroundtime-currentday
+
+        return delta_t
+        
+    def nextround(self):
+        # Game Logic
+        
+
+        if not self.gameover:
+            secs = self.updatenextround()
+            roundthread = Timer(secs, self.nextround())
+            roundthread.daemon = True
+            roundthread.start()
+            self.round += 1
             
 
 
