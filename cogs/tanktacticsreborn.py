@@ -29,8 +29,12 @@ class TTRCog(commands.Cog):
         self.bot = bot
         self.gamestate = GameState.Stopped
         self.nextroundtime = 0
+        self.roundtimer = 86400
         self.round = 0
         self.gameover = True
+        self.boardheight = 8
+        self.boardwidth = 8
+        self.baseboardemoji = ':black_large_square:'
         
     
     @commands.command()
@@ -44,7 +48,7 @@ class TTRCog(commands.Cog):
                 # Start game
                 if self.gamestate == GameState.Stopped:
                     await ctx.send('DEBUG: START GAME NOT IMPLEMENTED YET CHANGING GAME STATE')
-                    self.startgame()
+                    await self.startgame()
                     self.gamestate = GameState.Setup
 
                 else:
@@ -61,21 +65,34 @@ class TTRCog(commands.Cog):
                     case _:
                         print('ERROR: TTR GAMESTATE NOT FOUND')
     
-    def startgame(self):
+    async def startgame(self):
         self.gameover = False
-        self.round = 1
-        secs = self.updatenextround()
-        roundthread = Timer(secs, self.nextround())
-        # So I can kill it with the main thread
-        roundthread.daemon = True
-        roundthread.start()
-    
-    def updatenextround(self):
-        currentday=datetime.today()
-        nextday = currentday.replace(day=currentday.day, hour=1, minute=0, second=0, microsecond=0) + timedelta(days=1)
-        delta_t=nextday-currentday
+        self.round = 0
 
-        return delta_t.total_seconds()
+        # Set up board
+        embed = discord.Embed(title='Tank Tactics!')
+
+        # Make list of each column based on board height and width
+        baseboard = []
+        for _ in range(0, self.boardheight):
+            boardcolumn = []
+            for _ in range(0, self.boardwidth):
+                boardcolumn += self.baseboardemoji
+            baseboard += boardcolumn
+
+        # ERROR BOARD TOO LARGE
+        embed.add_field(name='', value=self.displayboard(baseboard))
+        for channel in ttrchannels:
+            ttrchannel = self.bot.get_channel(channel)
+            await ttrchannel.send(embed=embed)
+
+        await self.nextround()
+
+    def displayboard(self, boardlist):
+        liststring = ''
+        for list in boardlist:
+            liststring += ' '.join(list) + '\n'
+        return liststring
     
     def calculatenextround(self):
         currentday=datetime.today()
@@ -83,13 +100,13 @@ class TTRCog(commands.Cog):
 
         return delta_t
         
-    def nextround(self):
+    async def nextround(self):
         # Game Logic
         
 
         if not self.gameover:
-            secs = self.updatenextround()
-            roundthread = Timer(secs, self.nextround())
+            self.nextroundtime = datetime.now() + timedelta(days=1)
+            roundthread = Timer(self.roundtimer, self.nextround())
             roundthread.daemon = True
             roundthread.start()
             self.round += 1

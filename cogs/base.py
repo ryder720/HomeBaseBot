@@ -22,6 +22,10 @@ class BaseCog(commands.Cog):
                 now = datetime.datetime.now()
                 current_time = now.strftime('%H:%M:%S')
                 await ctx.send(f'Current time = {current_time}')
+            case 'embed':
+                embed = discord.Embed(title='Test')
+                embed.add_field(name='', value=':black_large_square:')
+                await ctx.send(embed=embed)
             # !debug uptime
             case 'uptime':
                 uptime = str(datetime.timedelta(seconds=int(round(time.time()-self.startTime))))
