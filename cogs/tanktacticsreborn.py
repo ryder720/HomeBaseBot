@@ -36,6 +36,7 @@ class TTRCog(commands.Cog):
         self.boardheight = 9
         self.boardwidth = 9
         self.baseboardemoji = ':black_large_square:'
+        self.boardmessageids = []
         
     
     @commands.command()
@@ -48,7 +49,6 @@ class TTRCog(commands.Cog):
             case 'play':
                 # Start game
                 if self.gamestate == GameState.Stopped:
-                    await ctx.send('DEBUG: START GAME NOT IMPLEMENTED YET CHANGING GAME STATE')
                     await self.startgame()
                     self.gamestate = GameState.Setup
 
@@ -68,7 +68,7 @@ class TTRCog(commands.Cog):
     
     async def startgame(self):
         # Set to true to limit recursion error
-        self.gameover = True
+        self.gameover = False
         self.round = 0
 
         # Make list of each column based on board height and width
@@ -81,9 +81,9 @@ class TTRCog(commands.Cog):
             board.append(boardcolumn)
         
 
-        await self.createboard(board)
+        self.boardmessageids = await self.createboard(board)
 
-        await self.nextround(board)
+        self.nextround(board)
 
     async def createboard(self, boardlist):
         channelmessageids = []
@@ -97,9 +97,14 @@ class TTRCog(commands.Cog):
             channelmessageids.append(message.id) 
         return channelmessageids
     
-    async def updateboard(self, boardlist):
-        pass
-        
+    def updateboard(self, boardlist):
+        boardstring = ''
+        for row in boardlist:
+            for collumn in row:
+                boardstring += collumn[:]
+        for channel in ttrchannels:
+            ttrchannel = self.bot.get_channel(channel)
+            
     
     def calculatenextround(self):
         currentday=datetime.today()
@@ -107,17 +112,19 @@ class TTRCog(commands.Cog):
 
         return delta_t
         
-    async def nextround(self, gameboard):
+    def nextround(self, gameboard):
         # Game Logic
 
 
-        await self.updateboard(gameboard)
+        self.updateboard(gameboard)
         if not self.gameover:
             self.nextroundtime = datetime.now() + timedelta(days=1)
-            roundthread = Timer(self.roundtimer, await self.nextround(gameboard))
+            roundthread = Timer(self.roundtimer, self.nextround, (gameboard,))
             roundthread.daemon = True
             roundthread.start()
+            print(f'DEBUG: Timer started for {self.roundtimer}')
             self.round += 1
+            print(f'DEBUG: Current round {self.round}')
             
 
 
