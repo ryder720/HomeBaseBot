@@ -1,5 +1,6 @@
 from discord.ext import commands
 import random, os, json, math, discord
+from start_bot import SERVER
 
 
 # Flip cog is an addon remake of a bot I made a while back
@@ -11,11 +12,12 @@ import random, os, json, math, discord
 # Constants
 DATA_DIR = './data/flip/'
 
-flipchannels = []
+
 
 class FlipCog(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
+        self.flipchannel = discord.utils.get(bot.get_guild(SERVER).channels, name='flip')
 
     def updateleaderboard(self, usr, coin):
             score = coin + 1
@@ -55,7 +57,7 @@ class FlipCog(commands.Cog):
     # !flip
     @commands.command()
     async def flip(self, ctx, arg=None):
-        if ctx.channel.id in flipchannels:
+        if ctx.channel.id == self.bot:
             match arg:
                 # !flip leaderboard
                 case 'leaderboard':
@@ -100,25 +102,17 @@ async def setup(client):
     await client.add_cog(FlipCog(client))
 
     # Create server channels
-    for server in client.guilds:
-        names = []
-        categories = []
-        for channel in server.channels:
-            names.append(channel.name)
-        for category in server.categories:
-            categories.append(category.name)
-        
-        if 'GAMES' not in categories:
-            gamescategory = await server.create_category('GAMES')
-        else:
-            gamescategory = discord.utils.get(server.categories, name='GAMES')
+    bot_server = client.get_guild(SERVER)
+    # Create server channels    
+    if 'GAMES' not in bot_server.categories:
+        gamescategory = await bot_server.create_category('GAMES')
+    else:
+        gamescategory = discord.utils.get(bot_server.categories, name='GAMES')
 
-        if 'flip' not in names:
-            await server.create_text_channel('flip', category = gamescategory)
-            channel = discord.utils.get(server.channels, name='flip')
-            flipchannels.append(channel.id) 
-        else:
-            channel = discord.utils.get(server.channels, name='flip')
-            flipchannels.append(channel.id) 
+    if 'flip' not in bot_server.channels:
+        overwrites = {bot_server.default_role: discord.PermissionOverwrite(send_messages=False, add_reactions=False)}
+        await bot_server.create_text_channel('flip', category = gamescategory, overwrites=overwrites)
+        
+        
 
               

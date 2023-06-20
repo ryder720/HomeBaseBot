@@ -1,6 +1,7 @@
 from discord.ext import commands
 import discord
 from cogs.base import DISCORD_ROLES
+from start_bot import SERVER
 from enum import Enum
 from datetime import datetime,timedelta
 from threading import Timer
@@ -14,9 +15,7 @@ from threading import Timer
 
 # Constants
 DATA_DIR = './data/ttr/'
-ROUND_TIMER = 24  # Hours need to convert depending on how it's used
-
-ttrchannels = []
+ROUND_TIMER = 86400  # Seconds in a day
 
 class GameState(Enum):
     Stopped = 1
@@ -27,6 +26,7 @@ class GameState(Enum):
 class TTRCog(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
+        self.ttrchannel = discord.utils.get(bot.get_guild(SERVER).channels, name='ttr')
         self.gamestate = GameState.Stopped
         self.nextroundtime = 0
         self.roundtimer = 86400
@@ -36,7 +36,7 @@ class TTRCog(commands.Cog):
         self.boardheight = 9
         self.boardwidth = 9
         self.baseboardemoji = ':black_large_square:'
-        self.boardmessageids = []
+        self.boardmessageid = 0
         
     
     @commands.command()
@@ -81,29 +81,24 @@ class TTRCog(commands.Cog):
             board.append(boardcolumn)
         
 
-        self.boardmessageids = await self.createboard(board)
-
         self.nextround(board)
 
     async def createboard(self, boardlist):
-        channelmessageids = []
         boardstring = ''
         for row in boardlist:
             for collumn in row:
                 boardstring += collumn[:]
-        for channel in ttrchannels:
-            ttrchannel = self.bot.get_channel(channel)
-            message = await ttrchannel.send(boardstring)
-            channelmessageids.append(message.id) 
-        return channelmessageids
+        
+        message = await self.ttrchannel.send(boardstring)
+        self.boardmessageid = message.id
+        
     
     def updateboard(self, boardlist):
         boardstring = ''
         for row in boardlist:
             for collumn in row:
                 boardstring += collumn[:]
-        for channel in ttrchannels:
-            ttrchannel = self.bot.get_channel(channel)
+        
             
     
     def calculatenextround(self):
@@ -119,10 +114,10 @@ class TTRCog(commands.Cog):
         self.updateboard(gameboard)
         if not self.gameover:
             self.nextroundtime = datetime.now() + timedelta(days=1)
-            roundthread = Timer(self.roundtimer, self.nextround, (gameboard,))
+            roundthread = Timer(ROUND_TIMER, self.nextround, (gameboard,))
             roundthread.daemon = True
             roundthread.start()
-            print(f'DEBUG: Timer started for {self.roundtimer}')
+            print(f'DEBUG: Timer started for {ROUND_TIMER} seconds')
             self.round += 1
             print(f'DEBUG: Current round {self.round}')
             
@@ -137,29 +132,20 @@ async def setup(client):
     for role in DISCORD_ROLES:
         if not 'Admin':
             ttrroles += role
+    bot_server = client.get_guild(SERVER)
+    # Create server channels    
+    if 'GAMES' not in bot_server.categories:
+        gamescategory = await bot_server.create_category('GAMES')
+    else:
+        gamescategory = discord.utils.get(bot_server.categories, name='GAMES')
 
-    # Create server channels
-    for server in client.guilds:
-        names = []
-        categories = []
-
-        for channel in server.channels:
-            names.append(channel.name)
-        for category in server.categories:
-            categories.append(category.name)
+    if 'ttr' not in bot_server.channels:
+        overwrites = {bot_server.default_role: discord.PermissionOverwrite(send_messages=False, add_reactions=False)}
+        await bot_server.create_text_channel('ttr', category = gamescategory, overwrites=overwrites)
+        ttrchannel = discord.utils.get(bot_server.channels, name='ttr')
+        for role in ttrroles:
+            await ttrchannel.set_permissions(role, send_messages=False)
         
-        if 'GAMES' not in categories:
-            gamescategory = await server.create_category('GAMES')
-        else:
-            gamescategory = discord.utils.get(server.categories, name='GAMES')
-
-        if 'ttr' not in names:
-            overwrites = {server.default_role: discord.PermissionOverwrite(send_messages=False, add_reactions=False)}
-            await server.create_text_channel('ttr', category = gamescategory, overwrites=overwrites)
-            channel = discord.utils.get(server.channels, name='ttr')
-            for role in ttrroles:
-                await channel.set_permissions(role, send_messages=False)
-            ttrchannels.append(channel.id)
-        else:
-            channel = discord.utils.get(server.channels, name='ttr')
-            ttrchannels.append(channel.id) 
+    else:
+        ttrchannel = discord.utils.get(bot_server.channels, name='ttr')
+        

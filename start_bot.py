@@ -9,6 +9,11 @@ intents.message_content = True
 
 client = commands.Bot(intents=intents, command_prefix = "!",help_command=None)
 
+# Get bot token and server id from .env
+load_dotenv()
+TOKEN = getenv('DISCORD_TOKEN')
+SERVER = int(getenv('SERVER_ID'))
+
 
 @client.event
 async def on_ready():
@@ -20,10 +25,20 @@ async def on_ready():
 
     print(f'We have logged in as {client.user}, and Bot is ready to go!')
 
+    for server in client.guilds:
+            if server != client.get_guild(SERVER):
+                await client.leave_guild(client.get_guild(SERVER))
+
+@client.event
+async def on_guild_join(server):
+    # Leave server if not correct
+    server = client.get_guild(SERVER)
+    if server != server:
+        await client.leave_guild(server)
+
 
 if __name__ == "__main__":
-    # Get bot token from .env
-    load_dotenv()
-    TOKEN = getenv('DISCORD_TOKEN')
-
+    
     client.run(TOKEN)
+
+    

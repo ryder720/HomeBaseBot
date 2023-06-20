@@ -1,15 +1,21 @@
 from discord.ext import commands
 import time, datetime, discord
+from start_bot import SERVER
 
 # Constants
 DISCORD_ROLES = ['Admin', 'Member']
 
+
+
 # Bot extention class
 class BaseCog(commands.Cog):  
-    def __init__(self, bot) -> None:
+    def __init__(self, bot):
         self.bot = bot
         # Start uptime timer
         self.startTime = time.time()
+        # Create roles
+        
+        
 
 
     ##DEBUG COMMANDS##
@@ -58,8 +64,16 @@ class BaseCog(commands.Cog):
 async def setup(client):
     await client.add_cog(BaseCog(client))
 
-    # Create roles
-    for server in client.guilds:
-        for role in DISCORD_ROLES:
+    
+    server = client.get_guild(SERVER)
+    print(server.name)
+    
+    
+    for role in DISCORD_ROLES:
             if not discord.utils.get(server.roles, name=role):
                 await server.create_role(name=role)
+
+
+   
+    
+    
