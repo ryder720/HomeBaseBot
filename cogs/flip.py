@@ -19,48 +19,65 @@ class FlipCog(commands.Cog):
         self.bot = bot
         self.flipchannel = discord.utils.get(bot.get_guild(SERVER).channels, name='flip')
 
+        if not self.flipchannel:
+            print('Cant find flipchannel')
+
     def updateleaderboard(self, usr, coin):
-            score = coin + 1
-            # Check if file exists
-            if not os.path.isfile(f'{DATA_DIR}flip.json'):
-                with open(f'{DATA_DIR}flip.json', 'w+') as file: 
-                    newdata = {str(usr): {'score': score, 'level': 0}}
-                    json.dump(newdata, file)
-            else:
-                with open(f'{DATA_DIR}flip.json', 'r') as file:
-                    data = json.load(file)
-                    data[str(usr)]['score'] += score
+        score = coin + 1
+        # Check if file exists
+        if not os.path.isfile(f'{DATA_DIR}flip.json'):
+            with open(f'{DATA_DIR}flip.json', 'w+') as file: 
+                newdata = {str(usr): {'score': score, 'level': 0}}
+                json.dump(newdata, file)
+        else:
+            with open(f'{DATA_DIR}flip.json', 'r') as file:
+                data = json.load(file)
+                data[str(usr)]['score'] += score
 
-                    # Update player level
-                    total = data[str(usr)]['score']
-                    data[str(usr)]['level'] = int((1 + math.sqrt(1 + 8 * total / 5)) / 2)
+                # Update player level
+                total = data[str(usr)]['score']
+                data[str(usr)]['level'] = int((1 + math.sqrt(1 + 8 * total / 5)) / 2)
 
-                with open(f'{DATA_DIR}flip.json', 'w') as file:
-                    json.dump(data, file)
+            with open(f'{DATA_DIR}flip.json', 'w') as file:
+                json.dump(data, file)
 
     def viewplayeronboard(self, ctx):
-            if not os.path.isfile(f'{DATA_DIR}flip.json'):
-                with open(f'{DATA_DIR}flip.json', 'w+') as file:
-                    key = str(ctx.author.id)
-                    newdata = {key: {'score': 0, 'level': 0}}
-                    json.dump(newdata, file)
-                    return newdata[key]
+        if not os.path.isfile(f'{DATA_DIR}flip.json'):
+            with open(f'{DATA_DIR}flip.json', 'w+') as file:
+                key = str(ctx.author.id)
+                newdata = {key: {'score': 0, 'level': 0}}
+                json.dump(newdata, file)
+                return newdata[key]
+        
+        with open(f'{DATA_DIR}flip.json', 'r') as file:
+                data = json.load(file)
+                key = str(ctx.author.id)
+                if key in data.keys():
+                    # Pretty up later
+                    return data[key]
+                return None
             
-            with open(f'{DATA_DIR}flip.json', 'r') as file:
-                    data = json.load(file)
-                    key = str(ctx.author.id)
-                    if key in data.keys():
-                        # Pretty up later
-                        return data[key]
-                    return None
+    def viewleaderboard(self, ctx):
+        if not os.path.isfile(f'{DATA_DIR}flip.json'):
+            with open(f'{DATA_DIR}flip.json', 'w+') as file:
+                key = str(ctx.author.id)
+                newdata = {key: {'score': 0, 'level': 0}}
+                json.dump(newdata, file)
+
+        with open(f'{DATA_DIR}flip.json', 'r') as file:
+            data = json.load(file)
+            datadict = dict(data)  # Make copy
+            datadict = sorted(datadict.items(), key=lambda x: x[1], reverse=True)
+            #datadict[:] = sorted(datadict[:], key=lambda x: x['score'], reverse=True)
+            return datadict
 
     # !flip
     @commands.command()
     async def flip(self, ctx, arg=None):
-        if ctx.channel.id == self.bot:
+        if ctx.channel.id == self.flipchannel.id:
             match arg:
-                # !flip leaderboard
-                case 'leaderboard':
+                # !flip score
+                case 'score':
                     player = self.viewplayeronboard(ctx)
                     if player:
                         # Pretty up later
@@ -68,6 +85,12 @@ class FlipCog(commands.Cog):
                     else:
                         await ctx.send(f'Sorry {ctx.author} I couldn\'t find your id on the leaderboard')
                         print(f'Failed to find {ctx.author.id} in {DATA_DIR}flip.json')
+
+                case 'leaderboard':
+                    board = self.viewleaderboard(ctx)
+                    print(board)
+                    await ctx.send(board)
+
 
                 # !flip
                 case _:
@@ -101,17 +124,17 @@ class FlipCog(commands.Cog):
 async def setup(client):
     await client.add_cog(FlipCog(client))
 
-    # Create server channels
+    # Check for server channels
     bot_server = client.get_guild(SERVER)
-    # Create server channels    
-    if 'GAMES' not in bot_server.categories:
-        gamescategory = await bot_server.create_category('GAMES')
-    else:
-        gamescategory = discord.utils.get(bot_server.categories, name='GAMES')
+    gamescategory = discord.utils.get(bot_server.categories, name='GAMES')
+    flipchannel = discord.utils.get(bot_server.channels, name='flip')
 
-    if 'flip' not in bot_server.channels:
-        overwrites = {bot_server.default_role: discord.PermissionOverwrite(send_messages=False, add_reactions=False)}
-        await bot_server.create_text_channel('flip', category = gamescategory, overwrites=overwrites)
+    # Create server channels    
+    if not gamescategory:
+        gamescategory = await bot_server.create_category('GAMES')
+
+    if not flipchannel:
+        await bot_server.create_text_channel('flip', category = gamescategory)
         
         
 
