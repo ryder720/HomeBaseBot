@@ -2,3 +2,4 @@
 __pycache__/
 cogs/*.pyc
 data/flip/*.json
+/venv
