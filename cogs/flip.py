@@ -22,6 +22,7 @@ class FlipCog(commands.Cog):
         if not self.flipchannel:
             print('ERROR: Cant find flipchannel')
 
+    ## Leaderboard ##
     def updateleaderboard(self, usr, coin):
         score = coin + 1
         # Check if file exists
@@ -73,6 +74,7 @@ class FlipCog(commands.Cog):
             datadict = sorted(datadict.items(), key=lambda x: x[1], reverse=True)
             #datadict[:] = sorted(datadict[:], key=lambda x: x['score'], reverse=True)
             return datadict
+    ## End Leaderboard ##
 
     # !flip
     @commands.command()
@@ -119,7 +121,8 @@ class FlipCog(commands.Cog):
     async def fliphelp(self, ctx):
         await ctx.send('Commands: \n'
                  '!flip | Flip a coin \n'
-                 '!flip leaderboard | See how you rank on the leaderboard\n'
+                 '!flip leaderboard | Check the leaderboard\n'
+                 '!flip score | View your stats\n'
                  'ONLY USABLE IN FLIP CHAT')
     
 
