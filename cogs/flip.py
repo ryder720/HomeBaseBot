@@ -84,9 +84,9 @@ class FlipCog(commands.Cog):
                     player = self.viewplayeronboard(ctx)
                     if player:
                         # Pretty up later
-                        await ctx.send(f"{ctx.author} is currently level {player['level']} with a score of {player['score']}")
+                        await ctx.send(f"{ctx.author.name} is currently level {player['level']} with a score of {player['score']}")
                     else:
-                        await ctx.send(f'Sorry {ctx.author} I couldn\'t find your id on the leaderboard')
+                        await ctx.send(f'Sorry {ctx.author.name} I couldn\'t find your id on the leaderboard')
                         print(f'Failed to find {ctx.author.id} in {DATA_DIR}flip.json')
 
                 case 'leaderboard':
@@ -102,9 +102,9 @@ class FlipCog(commands.Cog):
                     message = ''
                     player = self.viewplayeronboard(ctx)
                     if coin:
-                        message += f"LVL[{player['level']}] {ctx.author}\'s flip landed HEADS!"
+                        message += f"LVL[{player['level']}] {ctx.author.name}\'s flip landed HEADS!"
                     else:
-                        message += f"LVL[{player['level']}] {ctx.author}\'s flip landed TAILS!"
+                        message += f"LVL[{player['level']}] {ctx.author.name}\'s flip landed TAILS!"
                     # Update score
                     self.updateleaderboard(ctx.author.id, coin)
                     player = self.viewplayeronboard(ctx)
@@ -112,7 +112,7 @@ class FlipCog(commands.Cog):
                     await ctx.send(message)
         else:
             await ctx.message.delete()
-            await ctx.author.send(f'Hey {ctx.author} I know how fun flipping is but please keep it contained in the relegated flip channel')
+            await ctx.author.send(f'Hey {ctx.author.name} I know how fun flipping is but please keep it contained in the relegated flip channel')
 
 
     @commands.command()
@@ -138,7 +138,3 @@ async def setup(client):
 
     if not flipchannel:
         await bot_server.create_text_channel('flip', category = gamescategory)
-        
-        
-
-              
