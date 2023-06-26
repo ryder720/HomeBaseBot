@@ -32,8 +32,8 @@ async def on_ready():
 @client.event
 async def on_guild_join(server):
     # Leave server if not correct
-    server = client.get_guild(SERVER)
-    if server != server:
+    intendedserver = client.get_guild(SERVER)
+    if intendedserver != server:
         await client.leave_guild(server)
 
 

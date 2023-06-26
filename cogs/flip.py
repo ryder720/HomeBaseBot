@@ -20,7 +20,7 @@ class FlipCog(commands.Cog):
         self.flipchannel = discord.utils.get(bot.get_guild(SERVER).channels, name='flip')
 
         if not self.flipchannel:
-            print('Cant find flipchannel')
+            print('ERROR: Cant find flipchannel')
 
     def updateleaderboard(self, usr, coin):
         score = coin + 1

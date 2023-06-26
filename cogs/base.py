@@ -64,11 +64,8 @@ class BaseCog(commands.Cog):
 # Manditory setup override function
 async def setup(client):
     await client.add_cog(BaseCog(client))
-
     
     server = client.get_guild(SERVER)
-    print(server.name)
-    
     
     for role in DISCORD_ROLES:
             if not discord.utils.get(server.roles, name=role):
