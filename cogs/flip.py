@@ -1,5 +1,5 @@
 from discord.ext import commands
-import random, os, json, math, discord
+import random, os, json, math, discord, pathlib
 from start_bot import SERVER
 
 
@@ -26,6 +26,7 @@ class FlipCog(commands.Cog):
         score = coin + 1
         # Check if file exists
         if not os.path.isfile(f'{DATA_DIR}flip.json'):
+            pathlib.Path(f'{DATA_DIR}').mkdir(parents=True, exist_ok=True)
             with open(f'{DATA_DIR}flip.json', 'w+') as file: 
                 newdata = {str(usr): {'score': score, 'level': 0}}
                 json.dump(newdata, file)
@@ -43,6 +44,7 @@ class FlipCog(commands.Cog):
 
     def viewplayeronboard(self, ctx):
         if not os.path.isfile(f'{DATA_DIR}flip.json'):
+            pathlib.Path(f'{DATA_DIR}').mkdir(parents=True, exist_ok=True)
             with open(f'{DATA_DIR}flip.json', 'w+') as file:
                 key = str(ctx.author.id)
                 newdata = {key: {'score': 0, 'level': 0}}
@@ -59,6 +61,7 @@ class FlipCog(commands.Cog):
             
     def viewleaderboard(self, ctx):
         if not os.path.isfile(f'{DATA_DIR}flip.json'):
+            pathlib.Path(f'{DATA_DIR}').mkdir(parents=True, exist_ok=True)
             with open(f'{DATA_DIR}flip.json', 'w+') as file:
                 key = str(ctx.author.id)
                 newdata = {key: {'score': 0, 'level': 0}}
