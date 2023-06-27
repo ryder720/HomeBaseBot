@@ -28,19 +28,19 @@ class BaseCog(commands.Cog):
             case 'time': 
                 now = datetime.datetime.now()
                 current_time = now.strftime('%H:%M:%S')
-                await ctx.send(f'Current time = {current_time}')
+                await ctx.author.send(f'Current time = {current_time}')
             # !debug embed
             case 'embed':
                 embed = discord.Embed(title='Test')
                 embed.add_field(name='', value=':black_large_square:')
-                await ctx.send(embed=embed)
+                await ctx.author.send(embed=embed)
             # !debug uptime
             case 'uptime':
                 uptime = str(datetime.timedelta(seconds=int(round(time.time()-self.startTime))))
-                await ctx.send(f'The bot has been up for {uptime}')
+                await ctx.author.send(f'The bot has been up for {uptime}')
             # !debug
             case _:
-                await ctx.send("Test successful.")
+                await ctx.author.send("Test successful.")
     ##END DEBUG COMMANDS##
 
     @commands.command()
@@ -52,6 +52,7 @@ class BaseCog(commands.Cog):
                                '!help | Information on the use of this bot\n'
                                '!help cogs | Addons or "cogs" installed in bot')
             case 'cogs':
+                # Will always work unless base cog gets moved during use
                 cogsstring = 'Current cogs installed:\n'
                 for file in os.listdir("./cogs"):
                     if file.endswith(".py"):
@@ -59,9 +60,10 @@ class BaseCog(commands.Cog):
                 await ctx.send(cogsstring)
             # !help debug
             case 'debug':
+                # Check if user has admin role
                 if not commands.has_role('admin'):
                     pass
-                await ctx.send(f'Debug Commands: \n'
+                await ctx.author.send(f'Debug Commands: \n'
                                '!debug | Send message back to chat as test \n'
                                '!debug time | Get current time in bots timezone \n'
                                '!debug uptime | Get current bot uptime')
