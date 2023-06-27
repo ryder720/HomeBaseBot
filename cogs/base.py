@@ -1,3 +1,4 @@
+import os
 from discord.ext import commands
 import time, datetime, discord
 from start_bot import SERVER
@@ -48,7 +49,14 @@ class BaseCog(commands.Cog):
             # !help commands
             case 'commands':
                 await ctx.send(f'Commands:\n'
-                               '!help | Information on the use of this bot')
+                               '!help | Information on the use of this bot\n'
+                               '!help cogs | Addons or "cogs" installed in bot')
+            case 'cogs':
+                cogsstring = 'Current cogs installed:\n'
+                for file in os.listdir("./cogs"):
+                    if file.endswith(".py"):
+                        cogsstring += (f'{file[:-3]}\n')
+                await ctx.send(cogsstring)
             # !help debug
             case 'debug':
                 if not commands.has_role('admin'):
