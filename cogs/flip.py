@@ -60,7 +60,6 @@ class FlipCog(commands.Cog):
             datadict = dict(data)  # Make copy
             for ind in datadict.keys():
                 # Replace id with name no way this can't be maliciously exploited lol
-                print(ind)
                 usr = await ctx.bot.fetch_user(int(ind))
                 newind = usr.name
                 leaderboard.update({newind: datadict[ind]})
@@ -94,7 +93,6 @@ class FlipCog(commands.Cog):
 
                 case 'leaderboard':
                     board = await self.viewleaderboard(ctx)
-                    print(board)
                     await ctx.send(board)
                 
                 case 'help':
