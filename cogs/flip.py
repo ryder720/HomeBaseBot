@@ -51,14 +51,21 @@ class FlipCog(commands.Cog):
                     return data[key]
                 return None
             
-    def viewleaderboard(self, ctx):
+    async def viewleaderboard(self, ctx):
         self.createleaderboard(ctx.author.id)
+        leaderboard = {}
 
         with open(f'{DATA_DIR}flip.json', 'r') as file:
             data = json.load(file)
             datadict = dict(data)  # Make copy
-            datadict = sorted(datadict.items(), key=lambda x: x[1], reverse=True)
-            return datadict
+            for ind in datadict.keys():
+                # Replace id with name no way this can't be maliciously exploited lol
+                print(ind)
+                usr = await ctx.bot.fetch_user(int(ind))
+                newind = usr.name
+                leaderboard.update({newind: datadict[ind]})
+            leaderboard = sorted(leaderboard.items(), key=lambda x: x[1], reverse=True)
+            return leaderboard
     
     # Checks if leaderbord needs to be created, if so, it creates it
     def createleaderboard(self, userid):
@@ -86,7 +93,7 @@ class FlipCog(commands.Cog):
                         print(f'Failed to find {ctx.author.id} in {DATA_DIR}flip.json')
 
                 case 'leaderboard':
-                    board = self.viewleaderboard(ctx)
+                    board = await self.viewleaderboard(ctx)
                     print(board)
                     await ctx.send(board)
                 
