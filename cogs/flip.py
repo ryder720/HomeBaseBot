@@ -26,31 +26,22 @@ class FlipCog(commands.Cog):
     def updateleaderboard(self, usr, coin):
         score = coin + 1
         # Check if file exists
-        if not os.path.isfile(f'{DATA_DIR}flip.json'):
-            pathlib.Path(f'{DATA_DIR}').mkdir(parents=True, exist_ok=True)
-            with open(f'{DATA_DIR}flip.json', 'w+') as file: 
-                newdata = {str(usr): {'score': score, 'level': 0}}
-                json.dump(newdata, file)
-        else:
-            with open(f'{DATA_DIR}flip.json', 'r') as file:
-                data = json.load(file)
-                data[str(usr)]['score'] += score
+        self.createleaderboard(usr)
+        
+        with open(f'{DATA_DIR}flip.json', 'r') as file:
+            data = json.load(file)
+            data[str(usr)]['score'] += score
 
-                # Update player level
-                total = data[str(usr)]['score']
-                data[str(usr)]['level'] = int((1 + math.sqrt(1 + 8 * total / 5)) / 2)
+            # Update player level
+            total = data[str(usr)]['score']
+            data[str(usr)]['level'] = int((1 + math.sqrt(1 + 8 * total / 5)) / 2)
 
-            with open(f'{DATA_DIR}flip.json', 'w') as file:
-                json.dump(data, file)
+        with open(f'{DATA_DIR}flip.json', 'w') as file:
+            json.dump(data, file)
 
     def viewplayeronboard(self, ctx):
-        if not os.path.isfile(f'{DATA_DIR}flip.json'):
-            pathlib.Path(f'{DATA_DIR}').mkdir(parents=True, exist_ok=True)
-            with open(f'{DATA_DIR}flip.json', 'w+') as file:
-                key = str(ctx.author.id)
-                newdata = {key: {'score': 0, 'level': 0}}
-                json.dump(newdata, file)
-                return newdata[key]
+        
+        self.createleaderboard(ctx.author.id)
         
         with open(f'{DATA_DIR}flip.json', 'r') as file:
                 data = json.load(file)
@@ -61,19 +52,22 @@ class FlipCog(commands.Cog):
                 return None
             
     def viewleaderboard(self, ctx):
-        if not os.path.isfile(f'{DATA_DIR}flip.json'):
-            pathlib.Path(f'{DATA_DIR}').mkdir(parents=True, exist_ok=True)
-            with open(f'{DATA_DIR}flip.json', 'w+') as file:
-                key = str(ctx.author.id)
-                newdata = {key: {'score': 0, 'level': 0}}
-                json.dump(newdata, file)
+        self.createleaderboard(ctx.author.id)
 
         with open(f'{DATA_DIR}flip.json', 'r') as file:
             data = json.load(file)
             datadict = dict(data)  # Make copy
             datadict = sorted(datadict.items(), key=lambda x: x[1], reverse=True)
-            #datadict[:] = sorted(datadict[:], key=lambda x: x['score'], reverse=True)
             return datadict
+    
+    # Checks if leaderbord needs to be created, if so, it creates it
+    def createleaderboard(self, userid):
+        if not os.path.isfile(f'{DATA_DIR}flip.json'):
+            pathlib.Path(f'{DATA_DIR}').mkdir(parents=True, exist_ok=True)
+            with open(f'{DATA_DIR}flip.json', 'w+') as file:
+                key = str(userid)
+                newdata = {key: {'score': 0, 'level': 0}}
+                json.dump(newdata, file)
     ## End Leaderboard ##
 
     # !flip
@@ -95,7 +89,13 @@ class FlipCog(commands.Cog):
                     board = self.viewleaderboard(ctx)
                     print(board)
                     await ctx.send(board)
-
+                
+                case 'help':
+                    await ctx.send('Commands: \n'
+                        '!flip | Flip a coin \n'
+                        '!flip leaderboard | Check the leaderboard\n'
+                        '!flip score | View your stats\n'
+                        'ONLY USABLE IN FLIP CHAT')
 
                 # !flip
                 case _:
@@ -115,16 +115,7 @@ class FlipCog(commands.Cog):
         else:
             await ctx.message.delete()
             await ctx.author.send(f'Hey {ctx.author.name} I know how fun flipping is but please keep it contained in the relegated flip channel')
-
-
-    @commands.command()
-    async def fliphelp(self, ctx):
-        await ctx.send('Commands: \n'
-                 '!flip | Flip a coin \n'
-                 '!flip leaderboard | Check the leaderboard\n'
-                 '!flip score | View your stats\n'
-                 'ONLY USABLE IN FLIP CHAT')
-    
+         
 
 # Manditory setup override function
 async def setup(client):

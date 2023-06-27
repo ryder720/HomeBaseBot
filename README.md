@@ -13,4 +13,4 @@ run start_bot.py
 
 !help gives commands for base cog
 
-!(cog)help will give commands for addons
+!(cog) help will give commands for addons

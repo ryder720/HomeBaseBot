@@ -14,7 +14,6 @@ class BaseCog(commands.Cog):
         self.bot = bot
         # Start uptime timer
         self.startTime = time.time()
-        # Create roles
         
         
 
