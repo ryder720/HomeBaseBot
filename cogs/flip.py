@@ -58,10 +58,9 @@ class FlipCog(commands.Cog):
         data = self.loadfileasdict()
         key = str(ctx.author.id)
         if key in data.keys():
-            # Pretty up later
+            # Return the player
             return data[key]
         else:
-            # Create new player adds data instead of overwriting
             data.update({key: {'score': 0, 'level': 0}})
             self.writefilefromdict(data)
             return data[key]
@@ -88,7 +87,7 @@ class FlipCog(commands.Cog):
             position += 1
         return leaderboardstring
     
-    # Checks if leaderbord needs to be created, if so, it creates it
+    # Checks if leaderboard needs to be created, if so, it creates it
     def createleaderboard(self, userid):
         if not os.path.isfile(f'{DATA_DIR}flip.json'):
             pathlib.Path(f'{DATA_DIR}').mkdir(parents=True, exist_ok=True)
