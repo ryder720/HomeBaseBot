@@ -72,15 +72,18 @@ class FlipCog(commands.Cog):
 
         data = self.loadfileasdict()
         datadict = dict(data)  # Make copy
-        for index in datadict.keys():
+        for key in datadict.keys():
             # Replace id with name no way this can't be maliciously exploited lol
             # Maybe just add servername to database as well when I update discord.py
-            usr = await ctx.bot.fetch_user(int(index))
-            newindex = usr.name
-            leaderboard.update({newindex: datadict[index]})
+            usr = await ctx.bot.fetch_user(int(key))
+            newkey = usr.name
+            leaderboard.update({newkey: datadict[key]})
         leaderboard = sorted(leaderboard.items(), key=lambda x: x[1]["score"], reverse=True)
-        # Pretty up text output from here
-        return leaderboard
+        leaderboardstring = ''
+        for index in leaderboard:
+            playerdict = index[1]
+            leaderboardstring += f"[{playerdict['level']}]{index[0]} has a score of {playerdict['score']}\n"
+        return leaderboardstring
     
     # Checks if leaderbord needs to be created, if so, it creates it
     def createleaderboard(self, userid):
