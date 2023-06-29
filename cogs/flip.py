@@ -78,11 +78,14 @@ class FlipCog(commands.Cog):
             usr = await ctx.bot.fetch_user(int(key))
             newkey = usr.name
             leaderboard.update({newkey: datadict[key]})
+
         leaderboard = sorted(leaderboard.items(), key=lambda x: x[1]["score"], reverse=True)
         leaderboardstring = ''
+        position = 1  # Can create a hard limit here if needed
         for index in leaderboard:
             playerdict = index[1]
-            leaderboardstring += f"[{playerdict['level']}]{index[0]} has a score of {playerdict['score']}\n"
+            leaderboardstring += f"#{str(position)} [LVL {playerdict['level']}] {index[0]} has a score of {playerdict['score']}\n"
+            position += 1
         return leaderboardstring
     
     # Checks if leaderbord needs to be created, if so, it creates it
@@ -107,7 +110,7 @@ class FlipCog(commands.Cog):
                     player = self.viewplayeronboard(ctx)
                     if player:
                         # immushmush is currently level 6 with a score of 98
-                        await ctx.send(f"{ctx.author.name} is currently level {player['level']} with a score of {player['score']}")
+                        await ctx.send(f"[LVL {player['level']}]{ctx.author.name} has a score of {player['score']}")
                     else:
                         await ctx.send(f'Sorry {ctx.author.name} I couldn\'t find your id on the leaderboard')
                         print(f'Failed to find {ctx.author.id} in {DATA_DIR}flip.json')
@@ -130,15 +133,19 @@ class FlipCog(commands.Cog):
                     coin = random.randint(0,1)
                     message = ''
                     player = self.viewplayeronboard(ctx)
+                    playerlvl = player['level']
                     if coin:
-                        message += f"LVL[{player['level']}] {ctx.author.name}\'s flip landed HEADS!"
+                        message += f"[LVL{player['level']}] {ctx.author.name}\'s flip landed HEADS!"
                     else:
-                        message += f"LVL[{player['level']}] {ctx.author.name}\'s flip landed TAILS!"
+                        message += f"[LVL{player['level']}] {ctx.author.name}\'s flip landed TAILS!"
                     # Update score
                     self.updateleaderboard(ctx.author.id, coin)
                     player = self.viewplayeronboard(ctx)
                     message += f"\nYour new score is {player['score']}"
+                    
                     await ctx.send(message)
+                    if player['level'] != playerlvl:
+                        await ctx.send(f'Wow you leveled up to LVL{playerlvl + 1}')
         else:
             await ctx.message.delete()
             await ctx.author.send(f'Hey {ctx.author.name} I know how fun flipping is but please keep it contained in the relegated flip channel')
