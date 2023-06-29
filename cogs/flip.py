@@ -75,7 +75,7 @@ class FlipCog(commands.Cog):
             usr = await ctx.bot.fetch_user(int(ind))
             newind = usr.name
             leaderboard.update({newind: datadict[ind]})
-        leaderboard = sorted(leaderboard.items(), key=lambda x: x[1], reverse=True)
+        leaderboard = sorted(leaderboard.items(), key=lambda x: x[1]["score"], reverse=True)
         return leaderboard
     
     # Checks if leaderbord needs to be created, if so, it creates it
