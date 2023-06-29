@@ -22,12 +22,15 @@ class FlipCog(commands.Cog):
 
         if not self.flipchannel:
             print('ERROR: Cant find flipchannel')
+
     ## File Work ##
+    # Load dict from json file
     def loadfileasdict(self):
         dict = {}
         with open(f'{DATA_DIR}flip.json', 'r') as file:
             dict = json.load(file)
         return dict
+    # Write json file to dict. Overwrites file
     def writefilefromdict(self, dict):
         with open(f'{DATA_DIR}flip.json', 'w') as file:
             json.dump(dict, file)
@@ -45,7 +48,7 @@ class FlipCog(commands.Cog):
         # Update player level
         total = data[str(usr)]['score']
         data[str(usr)]['level'] = int((1 + math.sqrt(1 + 8 * total / 5)) / 2)
-
+        
         self.writefilefromdict(data)
 
     def viewplayeronboard(self, ctx):
@@ -69,13 +72,14 @@ class FlipCog(commands.Cog):
 
         data = self.loadfileasdict()
         datadict = dict(data)  # Make copy
-        for ind in datadict.keys():
+        for index in datadict.keys():
             # Replace id with name no way this can't be maliciously exploited lol
             # Maybe just add servername to database as well when I update discord.py
-            usr = await ctx.bot.fetch_user(int(ind))
-            newind = usr.name
-            leaderboard.update({newind: datadict[ind]})
+            usr = await ctx.bot.fetch_user(int(index))
+            newindex = usr.name
+            leaderboard.update({newindex: datadict[index]})
         leaderboard = sorted(leaderboard.items(), key=lambda x: x[1]["score"], reverse=True)
+        # Pretty up text output from here
         return leaderboard
     
     # Checks if leaderbord needs to be created, if so, it creates it
