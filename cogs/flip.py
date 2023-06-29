@@ -17,10 +17,21 @@ DATA_DIR = './data/flip/'
 class FlipCog(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
+        # Needs reboot after creation to work correctly
         self.flipchannel = discord.utils.get(bot.get_guild(SERVER).channels, name='flip')
 
         if not self.flipchannel:
             print('ERROR: Cant find flipchannel')
+    ## File Work ##
+    def loadfileasdict(self):
+        dict = {}
+        with open(f'{DATA_DIR}flip.json', 'r') as file:
+            dict = json.load(file)
+        return dict
+    def writefilefromdict(self, dict):
+        with open(f'{DATA_DIR}flip.json', 'w') as file:
+            json.dump(dict, file)
+    ## End File Work ##
 
     ## Leaderboard ##
     def updateleaderboard(self, usr, coin):
@@ -28,43 +39,44 @@ class FlipCog(commands.Cog):
         # Check if file exists
         self.createleaderboard(usr)
         
-        with open(f'{DATA_DIR}flip.json', 'r') as file:
-            data = json.load(file)
-            data[str(usr)]['score'] += score
+        data = self.loadfileasdict()
+        data[str(usr)]['score'] += score
 
-            # Update player level
-            total = data[str(usr)]['score']
-            data[str(usr)]['level'] = int((1 + math.sqrt(1 + 8 * total / 5)) / 2)
+        # Update player level
+        total = data[str(usr)]['score']
+        data[str(usr)]['level'] = int((1 + math.sqrt(1 + 8 * total / 5)) / 2)
 
-        with open(f'{DATA_DIR}flip.json', 'w') as file:
-            json.dump(data, file)
+        self.writefilefromdict(data)
 
     def viewplayeronboard(self, ctx):
         
         self.createleaderboard(ctx.author.id)
         
-        with open(f'{DATA_DIR}flip.json', 'r') as file:
-                data = json.load(file)
-                key = str(ctx.author.id)
-                if key in data.keys():
-                    # Pretty up later
-                    return data[key]
-                return None
+        data = self.loadfileasdict()
+        key = str(ctx.author.id)
+        if key in data.keys():
+            # Pretty up later
+            return data[key]
+        else:
+            # Create new player adds data instead of overwriting
+            data.update({key: {'score': 0, 'level': 0}})
+            self.writefilefromdict(data)
+            return data[key]
             
     async def viewleaderboard(self, ctx):
         self.createleaderboard(ctx.author.id)
         leaderboard = {}
 
-        with open(f'{DATA_DIR}flip.json', 'r') as file:
-            data = json.load(file)
-            datadict = dict(data)  # Make copy
-            for ind in datadict.keys():
-                # Replace id with name no way this can't be maliciously exploited lol
-                usr = await ctx.bot.fetch_user(int(ind))
-                newind = usr.name
-                leaderboard.update({newind: datadict[ind]})
-            leaderboard = sorted(leaderboard.items(), key=lambda x: x[1], reverse=True)
-            return leaderboard
+        data = self.loadfileasdict()
+        datadict = dict(data)  # Make copy
+        for ind in datadict.keys():
+            # Replace id with name no way this can't be maliciously exploited lol
+            # Maybe just add servername to database as well when I update discord.py
+            usr = await ctx.bot.fetch_user(int(ind))
+            newind = usr.name
+            leaderboard.update({newind: datadict[ind]})
+        leaderboard = sorted(leaderboard.items(), key=lambda x: x[1], reverse=True)
+        return leaderboard
     
     # Checks if leaderbord needs to be created, if so, it creates it
     def createleaderboard(self, userid):
@@ -72,8 +84,10 @@ class FlipCog(commands.Cog):
             pathlib.Path(f'{DATA_DIR}').mkdir(parents=True, exist_ok=True)
             with open(f'{DATA_DIR}flip.json', 'w+') as file:
                 key = str(userid)
-                newdata = {key: {'score': 0, 'level': 0}}
+                newdata = {key:{'score': 0, 'level': 0}}
                 json.dump(newdata, file)
+                print(newdata)
+        
     ## End Leaderboard ##
 
     # !flip
@@ -85,7 +99,7 @@ class FlipCog(commands.Cog):
                 case 'score':
                     player = self.viewplayeronboard(ctx)
                     if player:
-                        # Pretty up later
+                        # immushmush is currently level 6 with a score of 98
                         await ctx.send(f"{ctx.author.name} is currently level {player['level']} with a score of {player['score']}")
                     else:
                         await ctx.send(f'Sorry {ctx.author.name} I couldn\'t find your id on the leaderboard')
@@ -93,6 +107,7 @@ class FlipCog(commands.Cog):
 
                 case 'leaderboard':
                     board = await self.viewleaderboard(ctx)
+                    # Pretty up here
                     await ctx.send(board)
                 
                 case 'help':
