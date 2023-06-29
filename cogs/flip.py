@@ -114,12 +114,12 @@ class FlipCog(commands.Cog):
                     else:
                         await ctx.send(f'Sorry {ctx.author.name} I couldn\'t find your id on the leaderboard')
                         print(f'Failed to find {ctx.author.id} in {DATA_DIR}flip.json')
-
+                # !flip leaderboard
                 case 'leaderboard':
                     board = await self.viewleaderboard(ctx)
                     # Pretty up here
                     await ctx.send(board)
-                
+                # !flip help
                 case 'help':
                     await ctx.send('Commands: \n'
                         '!flip | Flip a coin \n'
