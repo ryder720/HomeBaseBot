@@ -1,6 +1,6 @@
 /.env
 __pycache__/
 cogs/*.pyc
-data/flip/*.json
+data/
 /venv
 *.code-workspace
