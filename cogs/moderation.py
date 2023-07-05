@@ -1,6 +1,6 @@
 from discord.ext import commands
 from start_bot import SERVER
-from base import DISCORD_ROLES
+from .base import DISCORD_ROLES
 import os, pathlib, json
 
 DATA_DIR = './data/moderation/'
@@ -10,20 +10,24 @@ class Moderation(commands.Cog):
         self.bot = bot
         self.server = bot.get_guild(SERVER)
 
-    async def kick(self, id, reason:str):
+    async def kick(self, id, reason:str = 'None'):
         with open(f'{DATA_DIR}kicked' , 'a') as file:
             kick = {id: {'reason':reason}}
             json.dump(kick, file)
-        await self.server.kick(self.server.fetch_member(id), reason)
+        member = await self.server.fetch_member(id)
+        await member.kick(reason=reason)
 
     @commands.has_role(DISCORD_ROLES[0])
     @commands.command()
-    async def mod(self, ctx, arg=None):
+    async def mod(self, ctx, *arg):
         match arg[0]:
             case 'kick':
                 await ctx.message.delete()
-                await self.kick(arg[1])
-            case '_':
+                if len(arg) == 3:
+                    await self.kick(arg[1], arg[2])
+                else:
+                    await self.kick(arg[1])
+            case '':
                 await ctx.message.delete()
                 await ctx.author.send('Test success')
 
